@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.env.*
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+ITFF_Project/data/
+ITFF_Project/models/
+ITFF_Project/reports/

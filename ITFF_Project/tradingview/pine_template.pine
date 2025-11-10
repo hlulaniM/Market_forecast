@@ -1,0 +1,31 @@
+﻿//@version=5
+indicator("ITFF Probability Overlay", overlay=true)
+
+//=== User Inputs ===//
+sequenceLength = input.int(60, "Sequence Window", minval=10)
+webhookUrl = input.string("https://your-api-domain/predict", "Prediction Endpoint")
+modelType = input.string("transformer", "Model Type", options=["lstm", "transformer"])
+threshold = input.float(0.55, "Decision Threshold", minval=0.0, maxval=1.0)
+mcSamples = input.int(20, "MC Samples (transformer)", minval=1)
+
+//=== Feature Buffer ===//
+var float[][] featureBuffer = array.new_float(0)
+if barstate.isnew
+    array.clear(featureBuffer)
+    for i = sequenceLength - 1 to 0
+        array.push(featureBuffer, [
+            nz(open[i]), nz(high[i]), nz(low[i]), nz(close[i]), nz(volume[i])
+        ])
+
+// Serialize feature buffer (placeholder)
+var message = ""
+if array.size(featureBuffer) == sequenceLength
+    message := str.format('{{"symbol":"{0}","target":"direction","model_type":"{1}","mc_samples":{2},"threshold":{3},"sequence":{4}}}', syminfo.ticker, modelType, mcSamples, threshold, featureBuffer)
+
+// Plot last probability received via webhook (manually populate)
+var float lastProbability = na
+lastProbability := lastProbability
+plot(lastProbability, color=color.orange, title="ITFF Probability")
+
+// Add alert condition
+alertcondition(true, title="ITFF Alert", message=message)

@@ -1,0 +1,8 @@
+﻿{
+  "symbol": "BTCUSDT",
+  "target": "direction",
+  "model_type": "transformer",
+  "mc_samples": 20,
+  "sequence": {{sequence_buffer|json}},
+  "threshold": 0.55
+}
