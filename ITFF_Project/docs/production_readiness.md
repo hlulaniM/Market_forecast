@@ -36,13 +36,44 @@ This document captures the enhancements required to move the Intelligent Trading
   - Lint (ruff/flake8), type check (mypy), unit tests (pytest).
   - Build Docker images for API and dashboard.
   - Publish to container registry (GitHub Container Registry).
-- Define IaC (Render `render.yaml` or Railway `railway.json`) for reproducible deployments.
+- Define IaC (Render `render.yaml` or Railway `railway.json`) for reproducible deployments. ✅ (`deploy/render.yaml` added)
 - Provide fallback instructions for Google Cloud Run free tier.
 
 ## 7. Monitoring & Observability
-- Expose `/metrics` (already in API) and add Dash health endpoint.
+- Expose `/metrics` (already in API) and add Dash health endpoint. ✅
 - Configure free Grafana Cloud or BetterStack for alerting on latency/error thresholds.
 - Add synthetic check (cron hitting `/health`) and logging retention guidance.
+
+### Prometheus Scrape Config
+
+```yaml
+scrape_configs:
+  - job_name: itff-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['itff-api.onrender.com']
+  - job_name: itff-dashboard
+    metrics_path: /health
+    static_configs:
+      - targets: ['itff-dashboard.onrender.com']
+```
+
+### Grafana Alert Example
+
+```yaml
+apiVersion: 1
+groups:
+  - name: itff-latency
+    rules:
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(itff_api_request_latency_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API latency above 500ms"
+          description: "95th percentile latency exceeded 500ms in the last 5 minutes."
+```
 
 ## 8. Security & Compliance
 - Document threat model (webhook exposure, credential handling).
@@ -53,6 +84,35 @@ This document captures the enhancements required to move the Intelligent Trading
 - Prepare automated notebooks/scripts for 30-day live evaluation with profit factor computation.
 - Store live run logs in `reports/live/` with daily summary.
 - Provide rollback checklist to previous model version.
+
+### 30-Day Validation Checklist
+
+1. **Daily Pipeline Job**
+   - Schedule `python scripts/run_pipeline.py ...` via Task Scheduler/cron at off-peak hours.
+   - Capture logs to `logs/pipeline_YYYYMMDD.log`.
+   - On failure, rerun manually and document resolution.
+
+2. **TradingView Webhook Monitor**
+   - Alerts send to `/predict` with `X-API-Token`.
+   - Store responses in `reports/live/tradingview/YYYY-MM-DD.jsonl`.
+
+3. **Daily Dashboard Snapshot**
+   - Export key charts to `reports/live/dashboards/YYYY-MM-DD.png`.
+   - Note anomalies in `reports/live/daily_notes.md`.
+
+4. **Weekly Evaluation**
+   - Run `python scripts/evaluate_models.py ...` to compare live vs. backtest metrics.
+   - Update thresholds if precision/recall drift exceeds 5%.
+
+5. **Post-Validation Review**
+   - Aggregate PF, MAE, directional accuracy, latency.
+   - Decide on model promotion or rollback using `deploy/rollback_checklist.md`.
+
+### Cloudflare R2 Artifact Hosting
+
+- Create an R2 bucket, enable public access, and upload model/scaler artifacts.
+- Use `scripts/hash_artifacts.py` to record SHA256 digests; update `deploy/artifacts.manifest.json`.
+- Set `ITFF_ARTIFACT_BASE_URL` to the bucket domain and mount on deploy.
 
 ## 10. Documentation
 - Update `README.md` with production quickstart, env vars, and deployment instructions.

@@ -1,19 +1,45 @@
 {
+  "base_url": "https://YOUR-BUCKET.s3.amazonaws.com",
   "artifacts": [
     {
       "source": "models/training/btcusdt_direction_best.keras",
       "destination": "models/training/btcusdt_direction_best.keras",
-      "sha256": ""
+      "sha256": "TODO"
     },
     {
       "source": "models/training/btcusdt_direction_transformer_best.keras",
       "destination": "models/training/btcusdt_direction_transformer_best.keras",
-      "sha256": ""
+      "sha256": "TODO"
+    },
+    {
+      "source": "models/training/btcusdt_level_up_best.keras",
+      "destination": "models/training/btcusdt_level_up_best.keras",
+      "sha256": "TODO"
+    },
+    {
+      "source": "models/training/ethusdt_direction_best.keras",
+      "destination": "models/training/ethusdt_direction_best.keras",
+      "sha256": "TODO"
+    },
+    {
+      "source": "models/training/ethusdt_direction_transformer_best.keras",
+      "destination": "models/training/ethusdt_direction_transformer_best.keras",
+      "sha256": "TODO"
+    },
+    {
+      "source": "models/training/ethusdt_level_up_best.keras",
+      "destination": "models/training/ethusdt_level_up_best.keras",
+      "sha256": "TODO"
     },
     {
       "source": "data/datasets/btcusdt_feature_scaler.pkl",
       "destination": "data/datasets/btcusdt_feature_scaler.pkl",
-      "sha256": ""
+      "sha256": "TODO"
+    },
+    {
+      "source": "data/datasets/ethusdt_feature_scaler.pkl",
+      "destination": "data/datasets/ethusdt_feature_scaler.pkl",
+      "sha256": "TODO"
     }
   ]
 }
