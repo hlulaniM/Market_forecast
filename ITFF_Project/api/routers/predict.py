@@ -34,7 +34,9 @@ async def run_prediction(payload: PredictRequest) -> PredictResponse:
     bundle = registry.load(payload.symbol, payload.target, payload.model_type)
     model = bundle["model"]
     metadata = bundle.get("metadata", {})
+    scaler = bundle.get("scaler")
     expected_len = metadata.get("sequence_length")
+    expected_features = metadata.get("feature_columns")
 
     sequence = np.array(payload.sequence, dtype=np.float32)
     if sequence.ndim != 2:
@@ -43,7 +45,19 @@ async def run_prediction(payload: PredictRequest) -> PredictResponse:
     if expected_len is not None and sequence.shape[0] != expected_len:
         raise HTTPException(status_code=400, detail=f"Expected sequence length {expected_len}, received {sequence.shape[0]}")
 
-    sequence = np.expand_dims(sequence, axis=0)
+    if expected_features is not None and sequence.shape[1] != len(expected_features):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Expected {len(expected_features)} features ({expected_features}), received {sequence.shape[1]}",
+        )
+
+    if scaler is not None:
+        try:
+            sequence = scaler.transform(sequence)
+        except Exception as exc:  # pragma: no cover - safety net
+            raise HTTPException(status_code=400, detail=f"Failed to scale sequence: {exc}") from exc
+
+    sequence = np.expand_dims(sequence.astype(np.float32), axis=0)
 
     mc_samples = payload.mc_samples or 1
     if payload.model_type == "transformer" and mc_samples > 1:
