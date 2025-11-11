@@ -1,45 +1,45 @@
 {
-  "base_url": "https://YOUR-BUCKET.s3.amazonaws.com",
+  "base_url": "https://ee0cd3f1fc6721c9657e124aef47b756.r2.cloudflarestorage.com/itff-artifacts",
   "artifacts": [
     {
       "source": "models/training/btcusdt_direction_best.keras",
       "destination": "models/training/btcusdt_direction_best.keras",
-      "sha256": "TODO"
+      "sha256": "d4f0849d8836df6040a4fb5e99c45e2af59cf8f81d3322a380e8fb40bed99e6b"
     },
     {
       "source": "models/training/btcusdt_direction_transformer_best.keras",
       "destination": "models/training/btcusdt_direction_transformer_best.keras",
-      "sha256": "TODO"
+      "sha256": "36b65f51bd83790495d9a10e10627e42809c6d3ccb219ca2e3c9baf6dc2ffbf9"
     },
     {
       "source": "models/training/btcusdt_level_up_best.keras",
       "destination": "models/training/btcusdt_level_up_best.keras",
-      "sha256": "TODO"
+      "sha256": "e2559c9aee58d6b3e1171d2c0ae5721af564e9f7292c353897fcced3db089c28"
     },
     {
       "source": "models/training/ethusdt_direction_best.keras",
       "destination": "models/training/ethusdt_direction_best.keras",
-      "sha256": "TODO"
+      "sha256": "dbf804021badcfb2b21e109da53c21c00a8a206f54178d8ed1136a768328a6ae"
     },
     {
       "source": "models/training/ethusdt_direction_transformer_best.keras",
       "destination": "models/training/ethusdt_direction_transformer_best.keras",
-      "sha256": "TODO"
+      "sha256": "c3b0f92aac80ec9d124b510c498463ba83f5bbdaea184947d6f6d52f5d5e4475"
     },
     {
       "source": "models/training/ethusdt_level_up_best.keras",
       "destination": "models/training/ethusdt_level_up_best.keras",
-      "sha256": "TODO"
+      "sha256": "9b890cee1ef93abc76b6b35465bcf7fac4229930892e40a05f359e8a0d666039"
     },
     {
       "source": "data/datasets/btcusdt_feature_scaler.pkl",
       "destination": "data/datasets/btcusdt_feature_scaler.pkl",
-      "sha256": "TODO"
+      "sha256": "02569bef28131f8f37c68277e27c16c8b71d9e6c2748de6830e881e022b229b1"
     },
     {
       "source": "data/datasets/ethusdt_feature_scaler.pkl",
       "destination": "data/datasets/ethusdt_feature_scaler.pkl",
-      "sha256": "TODO"
+      "sha256": "6b6c4969abf4dc567099d58908b9fda8a1c153b90be390cd86f1d35ed23d0528"
     }
   ]
 }

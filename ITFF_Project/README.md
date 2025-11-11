@@ -160,7 +160,7 @@ Set `ITFF_ARTIFACT_BASE_URL` to avoid passing `--base-url` each time. The script
 #### Cloudflare R2 Quickstart
 
 1. Create an R2 bucket (e.g., `itff-artifacts`) from the Cloudflare dashboard.
-2. Enable public access under **Settings → Public Access** and note the bucket domain (`https://<accountid>.r2.cloudflarestorage.com/itff-artifacts`).
+2. Enable public access under **Settings → Public Access** and note the bucket domain (shown under the “Public Bucket URL” heading, e.g. `https://<accountid>.r2.cloudflarestorage.com/itff-artifacts`).
 3. Upload model weights and scalers via the dashboard or `rclone`.
 4. Run `python scripts/hash_artifacts.py` to generate `deploy/artifact_hashes.json`, then fill in `sha256` values in `deploy/artifacts.manifest.json`.
 5. Update the manifest’s `base_url` with the bucket domain and deploy; set `ITFF_ARTIFACT_BASE_URL` to the same URL in Render/Railway.
