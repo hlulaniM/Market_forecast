@@ -128,6 +128,8 @@ docker run --rm -p 8000:8000 ^
 
 # Run dashboard (optional volume for reports)
 docker run --rm -p 8050:8050 ^
+  -e ITFF_DASH_USERNAME=demo ^
+  -e ITFF_DASH_PASSWORD=demo ^
   -v %cd%/ITFF_Project/reports:/app/reports ^
   itff-dashboard
 ```
@@ -139,8 +141,21 @@ The containers expect the same folder structure as the repository. In production
 - `ITFF_API_TOKEN`: shared secret required in the `X-API-Token` request header. Leave unset to disable auth (not recommended in production).
 - `ITFF_API_RATE_LIMIT`: SlowAPI-compatible string (e.g. `60/minute`, `500/hour`). Omit to disable rate limiting.
 - `ITFF_MODELS_DIR`, `ITFF_DATA_DIR`: optional overrides used by startup scripts / volume mounts.
+- `ITFF_DASH_USERNAME`, `ITFF_DASH_PASSWORD`: enable HTTP Basic Auth on the dashboard when both are provided.
 
 Clients must include the header `X-API-Token: <value>` when calling `/predict`.
+
+### Artifact Synchronisation
+
+Maintain a manifest of required model/scaler files under `deploy/artifacts.manifest.json`. Each entry contains a `source` (remote path or full URL), `destination` (relative path inside the container), and optional `sha256` checksum. Download artifacts with:
+
+```bash
+python scripts/sync_artifacts.py --manifest deploy/artifacts.manifest.json ^
+  --base-url https://your-storage-bucket.s3.amazonaws.com ^
+  --root ITFF_Project --overwrite
+```
+
+Set `ITFF_ARTIFACT_BASE_URL` to avoid passing `--base-url` each time. The script skips existing files unless `--overwrite` is provided.
 
 ## CI & Testing
 
@@ -170,8 +185,9 @@ Clients must include the header `X-API-Token: <value>` when calling `/predict`.
 3. **Dashboard service**
    - Create a second Web Service using `Dockerfile.dashboard`.
    - Start command: `gunicorn --bind 0.0.0.0:8050 dashboard.app:server`.
+   - Environment variables: `ITFF_DASH_USERNAME`, `ITFF_DASH_PASSWORD` for HTTP Basic Auth.
    - Mount the same persistent disk (read-only) at `/var/data` if the dashboard needs datasets/reports.
-   - Configure basic HTTP auth or restrict to VPN if metrics are sensitive.
+   - Configure IP allowlists or VPN access if additional locking is required.
 
 4. **Secrets management**
    - Store API tokens, webhook secrets, and storage credentials in Render’s secret manager.

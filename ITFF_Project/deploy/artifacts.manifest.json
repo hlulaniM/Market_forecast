@@ -1,0 +1,20 @@
+{
+  "artifacts": [
+    {
+      "source": "models/training/btcusdt_direction_best.keras",
+      "destination": "models/training/btcusdt_direction_best.keras",
+      "sha256": ""
+    },
+    {
+      "source": "models/training/btcusdt_direction_transformer_best.keras",
+      "destination": "models/training/btcusdt_direction_transformer_best.keras",
+      "sha256": ""
+    },
+    {
+      "source": "data/datasets/btcusdt_feature_scaler.pkl",
+      "destination": "data/datasets/btcusdt_feature_scaler.pkl",
+      "sha256": ""
+    }
+  ]
+}
+

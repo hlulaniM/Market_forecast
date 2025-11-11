@@ -27,9 +27,9 @@ This document captures the enhancements required to move the Intelligent Trading
 - Include data retention policy and backfill procedure.
 
 ## 5. Dashboard & Analytics
-- Containerize Plotly Dash with health endpoint for Render/Railway.
+- Containerize Plotly Dash with health endpoint for Render/Railway. ✅
 - Write ingestion job that pushes evaluation metrics to a lightweight SQLite/Parquet store the dashboard reads.
-- Add authentication (basic auth or reverse proxy) before exposing publicly.
+- Add authentication (basic auth or reverse proxy) before exposing publicly. ✅ (`dash_auth` with `ITFF_DASH_USERNAME/PASSWORD`)
 
 ## 6. Deployment Workflows
 - GitHub Actions workflow:

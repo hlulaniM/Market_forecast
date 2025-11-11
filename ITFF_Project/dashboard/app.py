@@ -1,8 +1,10 @@
 ﻿import json
+import os
 from pathlib import Path
 from typing import Dict
 
 import dash
+import dash_auth
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -15,6 +17,11 @@ DATASET_DIR = BASE_DIR / "data" / "datasets"
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 server = app.server
 app.title = "ITFF Dashboard"
+
+dash_username = os.getenv("ITFF_DASH_USERNAME")
+dash_password = os.getenv("ITFF_DASH_PASSWORD")
+if dash_username and dash_password:
+    dash_auth.BasicAuth(app, {dash_username: dash_password})
 
 symbols = sorted({p.name.split("_")[0].upper() for p in REPORT_DIR.glob("*_evaluation.json")})
 labels = ["direction", "level_up"]
