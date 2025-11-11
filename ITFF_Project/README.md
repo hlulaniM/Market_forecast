@@ -110,3 +110,64 @@ The dashboard reads evaluation JSON/CSV artifacts in `reports/` and updates auto
    - Create `Dockerfile.api`.
    - Create `Dockerfile.dashboard`.
    - Add deployment instructions and Render/Railway manifests once images are verified locally.
+
+## Docker Quickstart
+
+```bash
+# Build images (from repository root)
+docker build -f ITFF_Project/Dockerfile.api -t itff-api ITFF_Project
+docker build -f ITFF_Project/Dockerfile.dashboard -t itff-dashboard ITFF_Project
+
+# Run API with mounted artifacts and secrets
+docker run --rm -p 8000:8000 ^
+  -e ITFF_API_TOKEN=replace-me ^
+  -v %cd%/ITFF_Project/models:/app/models ^
+  -v %cd%/ITFF_Project/data:/app/data ^
+  itff-api
+
+# Run dashboard (optional volume for reports)
+docker run --rm -p 8050:8050 ^
+  -v %cd%/ITFF_Project/reports:/app/reports ^
+  itff-dashboard
+```
+
+The containers expect the same folder structure as the repository. In production, mount cloud storage or download artifacts on startup instead of baking models into the image.
+
+## CI & Testing
+
+- Install development dependencies: `pip install -r ITFF_Project/requirements-dev.txt`.
+- Lint: `flake8 ITFF_Project/api ITFF_Project/dashboard ITFF_Project/scripts ITFF_Project/tests`.
+- Tests: `pytest ITFF_Project/tests`.
+- GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + tests on push/pull requests targeting `main`.
+
+## Render Free-Tier Deployment
+
+1. **Repository setup**
+   - Push the `ITFF_Project` folder with Dockerfiles to GitHub (done).
+   - Ensure large artifacts (models/data) live in cloud storage or Render persistent disks.
+
+2. **API service**
+   - Create a new Web Service in Render, select the repo, and set the root to `ITFF_Project`.
+   - Runtime: Docker.
+   - Docker build command: default (`docker build` picks `Dockerfile.api` once specified).
+   - Start command: `uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2`.
+   - Environment variables:
+     - `ITFF_API_TOKEN` (shared secret for webhook auth, to be enforced in code).
+     - `ITFF_MODELS_DIR=/var/data/models` (if using persistent disk).
+     - `ITFF_DATA_DIR=/var/data/datasets`.
+   - Add a persistent disk (minimum 1 GB) mounted at `/var/data` and populate it with model/scaler artifacts on first deploy.
+
+3. **Dashboard service**
+   - Create a second Web Service using `Dockerfile.dashboard`.
+   - Start command: `gunicorn --bind 0.0.0.0:8050 dashboard.app:server`.
+   - Mount the same persistent disk (read-only) at `/var/data` if the dashboard needs datasets/reports.
+   - Configure basic HTTP auth or restrict to VPN if metrics are sensitive.
+
+4. **Secrets management**
+   - Store API tokens, webhook secrets, and storage credentials in Render’s secret manager.
+   - Rotate keys periodically; never commit them to Git.
+
+5. **Post-deploy checks**
+   - Hit `/health` and `/metrics` on the API service.
+   - Load the dashboard and confirm curves load using mounted reports.
+   - Enable auto-deploy on main branch; rely on GitHub Actions CI to keep builds green before Render deploys.
