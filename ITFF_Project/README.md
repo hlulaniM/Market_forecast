@@ -121,6 +121,7 @@ docker build -f ITFF_Project/Dockerfile.dashboard -t itff-dashboard ITFF_Project
 # Run API with mounted artifacts and secrets
 docker run --rm -p 8000:8000 ^
   -e ITFF_API_TOKEN=replace-me ^
+  -e ITFF_API_RATE_LIMIT=60/minute ^
   -v %cd%/ITFF_Project/models:/app/models ^
   -v %cd%/ITFF_Project/data:/app/data ^
   itff-api
@@ -132,6 +133,14 @@ docker run --rm -p 8050:8050 ^
 ```
 
 The containers expect the same folder structure as the repository. In production, mount cloud storage or download artifacts on startup instead of baking models into the image.
+
+### Runtime Configuration
+
+- `ITFF_API_TOKEN`: shared secret required in the `X-API-Token` request header. Leave unset to disable auth (not recommended in production).
+- `ITFF_API_RATE_LIMIT`: SlowAPI-compatible string (e.g. `60/minute`, `500/hour`). Omit to disable rate limiting.
+- `ITFF_MODELS_DIR`, `ITFF_DATA_DIR`: optional overrides used by startup scripts / volume mounts.
+
+Clients must include the header `X-API-Token: <value>` when calling `/predict`.
 
 ## CI & Testing
 
@@ -153,6 +162,7 @@ The containers expect the same folder structure as the repository. In production
    - Start command: `uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2`.
    - Environment variables:
      - `ITFF_API_TOKEN` (shared secret for webhook auth, to be enforced in code).
+     - `ITFF_API_RATE_LIMIT=60/minute` (or custom limit).
      - `ITFF_MODELS_DIR=/var/data/models` (if using persistent disk).
      - `ITFF_DATA_DIR=/var/data/datasets`.
    - Add a persistent disk (minimum 1 GB) mounted at `/var/data` and populate it with model/scaler artifacts on first deploy.

@@ -8,9 +8,9 @@ This document captures the enhancements required to move the Intelligent Trading
 - Add unit tests using stored sample sequences to ensure deterministic predictions.
 
 ## 2. API Hardening
-- Separate settings module (Pydantic `BaseSettings`) for configuration and secrets.
-- Enforce request authentication (static token initially, pluggable JWT/OAuth later).
-- Add rate limiting via `slowapi` or API gateway rules.
+- Separate settings module (Pydantic `BaseSettings`) for configuration and secrets. ✅
+- Enforce request authentication (static token initially, pluggable JWT/OAuth later). ✅ (`X-API-Token`)
+- Add rate limiting via `slowapi` or API gateway rules. ✅ (default `60/minute`, configurable via `ITFF_API_RATE_LIMIT`)
 - Provide latency benchmark script and capture p95 metrics.
 - Extend logging to JSON structure and ship to cloud log sink.
 
