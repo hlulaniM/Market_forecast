@@ -13,6 +13,7 @@ REPORT_DIR = BASE_DIR / "reports"
 DATASET_DIR = BASE_DIR / "data" / "datasets"
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+server = app.server
 app.title = "ITFF Dashboard"
 
 symbols = sorted({p.name.split("_")[0].upper() for p in REPORT_DIR.glob("*_evaluation.json")})
@@ -119,5 +120,10 @@ def update_dashboard(symbol, label, model_type):
     return cards, curve_fig, threshold_fig
 
 
+@server.get("/health")
+def healthcheck():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=8050)

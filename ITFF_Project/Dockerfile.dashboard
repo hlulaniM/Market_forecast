@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DASH_DEBUG_MODE=False \
+    ITFF_REPORT_DIR=/app/reports
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential git curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./requirements.txt
+
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
+
+RUN mkdir -p /app/reports /app/data
+
+COPY dashboard ./dashboard
+COPY README.md ./README.md
+
+EXPOSE 8050
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8050", "dashboard.app:server"]
+
