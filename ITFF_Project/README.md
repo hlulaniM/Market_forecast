@@ -79,3 +79,34 @@ The dashboard reads evaluation JSON/CSV artifacts in `reports/` and updates auto
 
 - Populate the `data/` directory using the data collection pipeline.
 - Extend feature engineering, modeling, and deployment assets in later phases (e.g., sentiment ingestion, calibration dashboards, live latency monitoring).
+
+## Containerization Plan
+
+1. **FastAPI prediction service**
+   - Build a slim Python base image (`python:3.11-slim`) with system deps for TensorFlow.
+   - Copy only `api/`, `scripts/`, `requirements.txt`, and shared libs into `/app`.
+   - Install dependencies with `pip install --no-cache-dir -r requirements.txt`.
+   - Expose `8000`, set `CMD` to `uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2`.
+   - Mount or download model artifacts at runtime (S3/Blob/Drive) to keep the image lean.
+
+2. **Plotly dashboard**
+   - Use the same base and dependency layer to avoid duplication.
+   - Copy `dashboard/` + shared requirements (reuse the primary `requirements.txt`).
+   - Expose `8050`, run with `python dashboard/app.py`.
+   - Share data artifacts via mounted volume/remote storage, not baked into the image.
+
+3. **Shared build strategy**
+   - Multi-stage Dockerfile or two Dockerfiles with a common `requirements` layer.
+   - `.dockerignore` to omit `data/`, `models/`, notebook outputs, caches.
+   - Environment variables for secrets/thresholds; reference them in the app configs.
+   - Health endpoints: FastAPI already serves `/health`; add a simple `/health` route to Dash or configure `Dash` to respond via Gunicorn worker.
+
+4. **Deployment targets (free tier friendly)**
+   - Render / Railway web services (one per container) with persistent volume for models, or download artifacts on boot.
+   - Alternative: Google Cloud Run free tier with artifacts in GCS and secrets via Secret Manager.
+
+5. **Next actions**
+   - Draft `.dockerignore`.
+   - Create `Dockerfile.api`.
+   - Create `Dockerfile.dashboard`.
+   - Add deployment instructions and Render/Railway manifests once images are verified locally.
