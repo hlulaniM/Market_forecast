@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+*.log
+.env
+.env.*
+.venv/
+data/
+models/
+reports/
+notebooks/
+proposal/
+*.ipynb
+
