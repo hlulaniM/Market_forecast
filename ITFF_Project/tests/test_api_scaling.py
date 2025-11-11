@@ -1,11 +1,12 @@
 from typing import Any, Dict
 
+import importlib
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.preprocessing import StandardScaler
 
-from api.main import app
+from api import config
 
 
 class DummyModel:
@@ -18,12 +19,7 @@ class DummyModel:
         return np.array([[self.response]], dtype=np.float32)
 
 
-@pytest.fixture()
-def client() -> TestClient:
-    return TestClient(app)
-
-
-def build_bundle(scaler: StandardScaler, model: DummyModel) -> Dict[str, Any]:
+def build_bundle(scaler: StandardScaler | None, model: DummyModel) -> Dict[str, Any]:
     return {
         "model": model,
         "scaler": scaler,
@@ -32,7 +28,19 @@ def build_bundle(scaler: StandardScaler, model: DummyModel) -> Dict[str, Any]:
     }
 
 
-def test_sequence_is_scaled(monkeypatch, client: TestClient) -> None:
+def reset_app(monkeypatch):
+    monkeypatch.delenv("ITFF_API_TOKEN", raising=False)
+    monkeypatch.delenv("ITFF_API_RATE_LIMIT", raising=False)
+    config.reset_settings_cache()
+    import api.main as main
+
+    importlib.reload(main)
+    return main
+
+
+def test_sequence_is_scaled(monkeypatch) -> None:
+    main = reset_app(monkeypatch)
+
     raw_sequence = np.array([[10.0, 20.0], [30.0, 40.0]], dtype=np.float32)
     scaler = StandardScaler()
     scaler.fit(np.array([[0.0, 0.0], [10.0, 10.0]], dtype=np.float32))
@@ -51,6 +59,7 @@ def test_sequence_is_scaled(monkeypatch, client: TestClient) -> None:
         "model_type": "lstm",
     }
 
+    client = TestClient(main.app)
     response = client.post("/predict", json=payload)
     assert response.status_code == 200
 
@@ -58,15 +67,12 @@ def test_sequence_is_scaled(monkeypatch, client: TestClient) -> None:
     np.testing.assert_allclose(model.last_input[0], expected_scaled.astype(np.float32))
 
 
-def test_missing_scaler_falls_back(monkeypatch, client: TestClient) -> None:
+def test_missing_scaler_falls_back(monkeypatch) -> None:
+    main = reset_app(monkeypatch)
+
     raw_sequence = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     model = DummyModel()
-    bundle = {
-        "model": model,
-        "scaler": None,
-        "metadata": {"sequence_length": 2, "feature_columns": ["feat_a", "feat_b"]},
-        "model_type": "lstm",
-    }
+    bundle = build_bundle(None, model)
 
     monkeypatch.setattr("api.routers.predict.registry.load", lambda *args, **kwargs: bundle)
 
@@ -78,6 +84,7 @@ def test_missing_scaler_falls_back(monkeypatch, client: TestClient) -> None:
         "model_type": "lstm",
     }
 
+    client = TestClient(main.app)
     response = client.post("/predict", json=payload)
     assert response.status_code == 200
     assert model.last_input is not None

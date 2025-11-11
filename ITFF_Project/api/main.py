@@ -1,29 +1,57 @@
 ﻿import logging
 import time
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import PlainTextResponse
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
+from api.config import get_settings
+from api.dependencies import enforce_api_token
 from api.models.registry import registry
 from api.routers.predict import router as predict_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("itff.api")
 
+settings = get_settings()
+
+rate_limits: List[str] = []
+if settings.api_rate_limit:
+    rate_limits.append(settings.api_rate_limit)
+
+if rate_limits:
+    limiter = Limiter(key_func=get_remote_address, default_limits=rate_limits)
+else:
+    limiter = Limiter(key_func=get_remote_address)
+
+METRICS_REGISTRY = CollectorRegistry()
+
 REQUEST_COUNT = Counter(
     "itff_api_requests_total",
     "Total number of API requests",
     ["method", "endpoint", "status_code"],
+    registry=METRICS_REGISTRY,
 )
 REQUEST_LATENCY = Histogram(
     "itff_api_request_latency_seconds",
     "Latency of API requests in seconds",
     ["method", "endpoint"],
+    registry=METRICS_REGISTRY,
 )
 
-app = FastAPI(title="ITFF Prediction Service", version="0.2.0")
+app = FastAPI(title="ITFF Prediction Service", version="0.3.0")
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> PlainTextResponse:
+    return PlainTextResponse("Too Many Requests", status_code=429)
 
 
 @app.middleware("http")
@@ -44,7 +72,7 @@ async def metrics_middleware(request: Request, call_next):
     return response
 
 
-app.include_router(predict_router)
+app.include_router(predict_router, dependencies=[Depends(enforce_api_token)])
 
 
 @app.get("/health")
@@ -63,7 +91,7 @@ def get_metadata(symbol: str, target: str = "direction", model_type: str = "lstm
 
 @app.get("/metrics")
 def get_metrics() -> Response:
-    return PlainTextResponse(generate_latest(), media_type="text/plain")
+    return PlainTextResponse(generate_latest(METRICS_REGISTRY), media_type="text/plain")
 
 
 def get_uvicorn_kwargs(host: str = "0.0.0.0", port: int = 8000) -> Dict[str, Any]:

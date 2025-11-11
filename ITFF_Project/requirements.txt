@@ -15,5 +15,7 @@ uvicorn[standard]>=0.23.0
 yahoo_fin>=0.8.9.1
 python-dotenv>=1.0.0
 pydantic>=2.3.0
+pydantic-settings>=2.3.0
 transformers>=4.39.0
 prometheus-client>=0.20.0
+slowapi>=0.1.9
