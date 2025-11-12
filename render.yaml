@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: itff-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ITFF_Project/Dockerfile.api
+    dockerContext: .
+    envVars:
+      - key: ITFF_API_TOKEN
+        sync: false
+      - key: ITFF_API_RATE_LIMIT
+        value: 60/minute
+      - key: ITFF_ARTIFACT_BASE_URL
+        sync: false
+      - key: ITFF_MODELS_DIR
+        value: /var/data/models
+      - key: ITFF_DATA_DIR
+        value: /var/data/datasets
+    disk:
+      name: models
+      mountPath: /var/data
+      sizeGB: 1
+    autoDeploy: true
+    healthCheckPath: /health
+
+  - type: web
+    name: itff-dashboard
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ITFF_Project/Dockerfile.dashboard
+    dockerContext: .
+    envVars:
+      - key: ITFF_DASH_USERNAME
+        sync: false
+      - key: ITFF_DASH_PASSWORD
+        sync: false
+      - key: ITFF_REPORT_DIR
+        value: /var/data/reports
+    disk:
+      name: reports
+      mountPath: /var/data
+      sizeGB: 1
+    autoDeploy: true
+    healthCheckPath: /health
+
