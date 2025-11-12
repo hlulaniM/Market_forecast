@@ -14,13 +14,9 @@ services:
       - key: ITFF_ARTIFACT_BASE_URL
         sync: false
       - key: ITFF_MODELS_DIR
-        value: /var/data/models
+        value: /app/models
       - key: ITFF_DATA_DIR
-        value: /var/data/datasets
-    disk:
-      name: models
-      mountPath: /var/data
-      sizeGB: 1
+        value: /app/data
     autoDeploy: true
     healthCheckPath: /health
 
@@ -37,11 +33,7 @@ services:
       - key: ITFF_DASH_PASSWORD
         sync: false
       - key: ITFF_REPORT_DIR
-        value: /var/data/reports
-    disk:
-      name: reports
-      mountPath: /var/data
-      sizeGB: 1
+        value: /app/reports
     autoDeploy: true
     healthCheckPath: /health
 
