@@ -29,5 +29,5 @@ EXPOSE 8000
 COPY ITFF_Project/scripts/start_api.sh /start_api.sh
 RUN chmod +x /start_api.sh
 
-CMD ["/start_api.sh"]
+ENTRYPOINT ["/bin/bash", "/start_api.sh"]
 

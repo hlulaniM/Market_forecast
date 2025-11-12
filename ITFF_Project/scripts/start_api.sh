@@ -1,6 +1,10 @@
 #!/bin/bash
 
+echo "=========================================="
 echo "Starting ITFF API service..."
+echo "=========================================="
+echo "Current directory: $(pwd)"
+echo "ITFF_ARTIFACT_BASE_URL: ${ITFF_ARTIFACT_BASE_URL:-NOT SET}"
 
 # Sync artifacts if base URL is set
 if [ -n "$ITFF_ARTIFACT_BASE_URL" ]; then
@@ -10,12 +14,15 @@ if [ -n "$ITFF_ARTIFACT_BASE_URL" ]; then
         --base-url "$ITFF_ARTIFACT_BASE_URL" \
         --root /app \
         --overwrite; then
-        echo "Artifact sync completed successfully"
+        echo "✓ Artifact sync completed successfully"
+        echo "Listing downloaded files:"
+        ls -lh /app/models/ 2>/dev/null || echo "No models directory"
+        ls -lh /app/data/ 2>/dev/null || echo "No data directory"
     else
-        echo "Warning: Artifact sync failed, continuing anyway..."
+        echo "✗ WARNING: Artifact sync failed, continuing anyway..."
     fi
 else
-    echo "Warning: ITFF_ARTIFACT_BASE_URL not set, skipping artifact sync"
+    echo "⚠ WARNING: ITFF_ARTIFACT_BASE_URL not set, skipping artifact sync"
 fi
 
 echo "Starting uvicorn server..."
